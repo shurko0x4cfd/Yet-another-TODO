@@ -23,7 +23,7 @@
 		"start": "react-scripts start",
 		"build": "react-scripts build",
 		"test-old": "# react-scripts test",
-		"eject": "# react-scripts eject",
+		"eject": "react-scripts eject",
 		"wp-watch": "webpack --config webpack.config.cjs --watch"
 	},
 	"eslintConfig": {
