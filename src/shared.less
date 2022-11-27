@@ -1,0 +1,299 @@
+// Всюду видим background элемента #root
+.bg-transparent {
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.no-any-borders {
+	border-style: none;
+	outline-style: none;
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+}
+
+.col {
+	display: flex;
+	flex-direction: column;
+}
+
+.jc-sb {
+	justify-content: space-between;
+}
+
+.fw-bold {
+	font-weight: bold;
+}
+
+.bg-black {
+	background-color: black;
+}
+
+* {
+	margin: 0px;
+	padding: 0px;
+	box-sizing: border-box;
+}
+
+html,
+body,
+#yatd-root {
+	width: 100%;
+	min-height: 100%;
+}
+
+body {
+	color: lightgrey;
+	.bg-black;
+
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+		'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+		'Helvetica Neue', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+code {
+	font-family: 'Terminus (TTF)', monospace, source-code-pro, Menlo, Monaco,
+		Consolas, 'Courier New';
+}
+
+#yatd-root {
+	.row;
+	justify-content: center;
+	color: lightgrey;
+	.bg-black;
+}
+
+.yatd-container {
+	.col;
+	width: 920px;
+	padding: 128px 0px;
+}
+
+.record-list-container {
+	.col;
+	width: 920px;
+}
+
+.record {
+	.col;
+	padding: 16px 16px 8px 16px;
+	border-style: solid;
+	margin-bottom: 48px;
+	border-color: lightgrey;
+	border-width: 1px;
+	background-color: #101010;
+}
+
+.top-menu {
+	.row;
+	.jc-sb;
+	.underscore-1;
+}
+
+.bottom-menu {
+	.row;
+	.jc-sb;
+	.overscore-1;
+	.pt-8;
+	margin-left: 0px;
+}
+
+.menu-item {
+	margin: 0px 8px;
+}
+
+.menu-item:hover {
+	cursor: default;
+}
+
+.file-names {
+	.row;
+	// margin: 0px -10px;
+}
+
+.file-names__item {
+	margin: 0px 8px;
+	color: lightgrey;
+}
+
+.file-names__item:hover {
+	cursor: default;
+	color: white;
+}
+
+a.file-names__item {
+	text-decoration: none;
+}
+
+.round-4 {
+	border-radius: 4px;
+}
+
+.score-n (@top: 1, @bottom: 1, @tickness: 1px, @bgc: grey) {
+	border-style: solid;
+	border-color: @bgc;
+	border-width: @top * @tickness 0px @bottom * @tickness 0px;
+}
+
+.underscore-1 {
+	.score-n (0, 1);
+}
+
+.overscore-1 {
+	.score-n (1, 0);
+}
+
+.pt-8 {
+	padding-top: 8px;
+}
+
+.pt-16 {
+	padding-top: 16px;
+}
+
+.pb-16 {
+	padding-bottom: 16px;
+}
+
+.ms-0 {
+	margin-left: 0px;
+}
+
+.title {
+	margin: 0px 0px 5px 0px;
+	.no-any-borders;
+	color: purple;
+	.bg-transparent
+}
+
+.date-at-input {
+	padding: 0px 8px;
+	outline-style: none;
+	color: white;
+	border-color: yellow;
+	border-width: 1px;
+	.bg-transparent;
+	text-align: center;
+}
+
+.description {
+	margin: 0px 0px 5px 0px;
+	padding: 18px 0px;
+	min-height: 3.5rem;
+	resize: vertical;
+	.no-any-borders;
+	color: white;
+	.bg-transparent
+}
+
+.upload-file-btn {
+	width: 0px;
+	height: 0px;
+}
+
+.fs-1 {
+	font-size: 1rem;
+}
+
+.fs-1-3 {
+	font-size: 1.3rem;
+}
+
+.fc-green {
+	color: lightgreen;
+}
+
+.fc-green:hover {
+	color: green;
+}
+
+@red-button-color: red;
+
+.fc-red {
+	color: @red-button-color;
+}
+
+.fc-red:hover {
+	color: lighten(@red-button-color, 40%);
+}
+
+@lightblue-button-color: lightblue;
+
+.fc-blue {
+	color: @lightblue-button-color;
+}
+
+.fc-blue:hover {
+	color: lighten(@lightblue-button-color, 10%);
+}
+
+.fc-orng {
+
+	color: orange;
+}
+
+.fc-orng:hover {
+	color: yellow
+}
+
+.opt-green {
+	.no-any-borders;
+	.bg-black;
+	color: lightgreen;
+}
+
+.opt-orng {
+	.no-any-borders;
+	.bg-black;
+	color: orange;
+}
+
+.select-stage {
+	.no-any-borders;
+	color: lightgreen;
+	.bg-transparent;
+}
+
+.done-green-border {
+	border-color: green;
+}
+
+.fail-red-border {
+	border-color: red;
+}
+
+.add-record {
+	.row;
+	justify-content: center;
+	font-size: 128px;
+}
+
+.add-record:hover {
+	cursor: default;
+}
+
+.add-record__inner {
+	.col;
+	width: 100px;
+	height: 100px;
+	justify-content: center;
+	text-align: center;
+	border-radius: 50%;
+	color: #999999;
+	background-color: #101010;
+}
+
+.add-record__inner:hover {
+	background-color: darkgreen;
+}
+
+
+/* Для отладки */
+.red-border {
+	border-style: dotted;
+	border-width: 1px;
+	border-color: red;
+}
