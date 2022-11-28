@@ -5,6 +5,8 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { homeBrewUidGen as uidGen } from './tools.js';
+import BigPlus from './bem-blocks/add-record/add-record.jsx';
 
 import {
 	getStorage,
@@ -34,7 +36,7 @@ const recordsDir = 'records/';
 /** Объект базы данных Firebase  */
 const db = getDatabase();
 /** Объект базы данных FirebaseStorage  */
-const  fbStorage = getStorage(fbApp, storageUrl);
+const fbStorage = getStorage(fbApp, storageUrl);
 
 
 /** Корневой компонент
@@ -186,12 +188,12 @@ function InputTimePlace(props) {
 			}}>
 
 			<input className='date-at-input' ref={ref} defaultValue={props.time}
-				placeholder={'Y-m-d H:i'}
+				placeholder={'год-месяц-день часы:мин'}
 				onBlur={() => {
 					storeTime(ref, props.setInEditing, props.record, props.setRecord);
 				}}
 
-				onChange={(evt) => props.setTime(evt.target.value)}
+				onChange={evt => props.setTime(evt.target.value)}
 			/>
 		</form>
 	);
@@ -218,7 +220,7 @@ function storeTime(ref, setInEditing, record, setRecord) {
 
 
 /**
- * Компонент верхнего меню
+ * Компонент нижнего меню
  * @component
  */
 function BottomMenu(props) {
@@ -321,18 +323,18 @@ function getFileUrl(setFileUrl, id) {
  * Компонент элемента интерфейса, добавляющего новую запись
  * @component
  */
-function BigPlus(props) {
-	return (
-		<div className='add-record'>
-			<div className='add-record__inner'
-				onClick={() => {
-					const id = generateExample();
-					props.setRecordIds(recordIds => [...recordIds, id]);
-				}}>
-				+
-			</div>
-		</div>);
-}
+// function BigPlus(props) {
+// 	return (
+// 		<div className='add-record'>
+// 			<div className='add-record__item'
+// 				onClick={() => {
+// 					const id = generateExample();
+// 					props.setRecordIds(recordIds => [...recordIds, id]);
+// 				}}>
+// 				+
+// 			</div>
+// 		</div>);
+// }
 
 
 /**
@@ -357,7 +359,7 @@ function uploadFile(record, setRecord, evt) {
 	evt.stopPropagation();
 	evt.preventDefault();
 
-	const fileId = homeBrewUidGen();
+	const fileId = uidGen();
 	const file = evt.target.files[0];
 	const newRef = ref(fbStorage, fileId);
 
@@ -410,7 +412,7 @@ function generateExample(recordsNumber = 1) {
 
 	for (let i = 0; i < recordsNumber; i++) {
 		const record = { ...sampleRecord };
-		record.id = id = homeBrewUidGen();
+		record.id = id = uidGen();
 		updata[id] = record;
 	}
 
@@ -444,23 +446,6 @@ function removeRecord(record) {
 	updata[record.id] = null;
 
 	fbUpd(ref, updata);
-}
-
-
-/**
- * Наивная генерация uid, но здесь достаточно такой
- * @param  {number} [len] Длина uid
- * @return {string} uid
- */
-function homeBrewUidGen(len = 32) {
-	if (!len--) return '';
-
-	const nat = Math.floor(Math.random() * 16);
-	const int = Math.floor(nat / 10);
-	const rest = nat % 10;
-	const code = int * 17 + 48 + rest;
-
-	return String.fromCharCode(code) + homeBrewUidGen(len);
 }
 
 

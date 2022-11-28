@@ -63,7 +63,7 @@
 		"workbox-webpack-plugin": "^6.4.1"
 	},
 	"scripts": {
-		"docs": "node node_modules/.bin/jsdoc -c jsdoc.conf.json",
+		"docs": "node node_modules/.bin/jsdoc -c config/jsdoc.conf.json",
 		"start": "node scripts/start.cjs",
 		"build": "node scripts/build.cjs",
 		"test": "node scripts/test.cjs"

@@ -6,7 +6,7 @@ import { initializeApp } from "firebase/app";
 export const firebaseConfig =
 	Object.freeze
 		({
-			apiKey: "",
+			apiKey: "AIzaSyCHx_99ibruwI3H7egLdglmhcEZx7d4XGU",
 			authDomain: "yatd-50f7c.firebaseapp.com",
 			projectId: "yatd-50f7c",
 			storageBucket: "yatd-50f7c.appspot.com",
