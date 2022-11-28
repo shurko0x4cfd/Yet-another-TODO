@@ -1,4 +1,4 @@
-// Всюду видим background элемента #root
+
 .bg-transparent {
 	background-color: rgba(0, 0, 0, 0);
 }
@@ -61,26 +61,33 @@ code {
 
 #yatd-root {
 	.row;
+	padding: 128px 16px;
 	justify-content: center;
 	color: lightgrey;
 	.bg-black;
 }
 
-.yatd-container {
+.yatd-container, .record-list-container {
 	.col;
-	width: 920px;
-	padding: 128px 0px;
 }
 
-.record-list-container {
-	.col;
-	width: 920px;
-}
+@media (min-width: 992) {
+	.yatd-container {
+		width: 920px;
+	}
 
-@media (max-width: 992) {
 	.record-list-container {
-		.col;
-		width: 300px;
+		width: 920px;
+	}
+}
+
+@media (max-width: 991) {
+	.yatd-container {
+		width: 100%;
+	}
+
+	.record-list-container {
+		width: 100%;
 	}
 }
 
@@ -99,6 +106,7 @@ code {
 	.row;
 	.jc-sb;
 	.underscore-1;
+	flex-wrap: wrap;
 }
 
 .bottom-menu {
@@ -106,7 +114,6 @@ code {
 	.jc-sb;
 	.overscore-1;
 	.pt-8;
-	margin-left: 0px;
 }
 
 .menu-item {
