@@ -148,14 +148,21 @@ function TopMenu({ record, setRecord, inEditing, setInEditing, time, setTime }) 
 							setTime={setTime}
 							setInEditing={setInEditing} />
 						:
-						<div className='row'
+						<div className='row' role='button' tabIndex={0}
+							aria-expanded={inEditing}
+							onKeyDown={evt =>
+								(evt.key === ' ' || evt.key === 'Enter') &&
+								setInEditing(true)}
 							onClick={() => setInEditing(true)}>
 
 							<div className='menu-item fc-blue'>Сделать до</div>
 							<div className='menu-item fc-orng'>{record.doUpTo}</div>
 						</div>
 				}
-				<div className='menu-item fc-green'
+				<div className='menu-item fc-green' role='button' tabIndex={0}
+					onKeyDown={evt =>
+						(evt.key === ' ' || evt.key === 'Enter') &&
+						markTaskDone(record, setRecord)}
 					onClick={() => markTaskDone(record, setRecord)}>
 					Отметить выполненной
 				</div>
@@ -235,17 +242,23 @@ function BottomMenu({ filenames = [], record, setRecord }) {
 				</div>
 			</menu>
 			<menu className='row'>
-				<label className='menu-item fc-blue'>
-					<input type="file" id='file' name="file" hidden={true}
+				<label tabIndex={0} className='menu-item fc-blue'>
+					<input type='file' id='file' name='file' hidden={true}
 						onChange={uploadFile.bind(null, record, setRecord)}
 						className='upload-file-btn' />
 					+ Прикрепить файл
 				</label>
-				<div className='menu-item fc-red' role='button'
+				<div className='menu-item fc-red' role='button' tabIndex={0}
+					onKeyDown={evt =>
+						(evt.key === ' ' || evt.key === 'Enter') &&
+						removeRecord(record)}
 					onClick={() => removeRecord(record)}>
 					Удалить запись
 				</div>
-				<div className='menu-item fc-green' role='button'
+				<div className='menu-item fc-green' role='button' tabIndex={0}
+					onKeyDown={evt =>
+						(evt.key === ' ' || evt.key === 'Enter') &&
+						updOneRecord(record)}
 					onClick={() => updOneRecord(record)}>
 					Сохранить
 				</div>
