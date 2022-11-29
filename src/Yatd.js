@@ -31,7 +31,7 @@ import dayjs from 'dayjs';
 const cl = console.log;
 
 /** Каталог для записей  */
-const recordsDir = 'records/';
+const recordsDir = 'records';
 
 /** Объект базы данных Firebase  */
 const db = getDatabase();
@@ -336,7 +336,7 @@ function getFileUrl(setFileUrl, id) {
  * @param {string} [id]      Идентификатор записи
  */
 function subscribeOnOneRecordChange(setRecord, id = '') {
-	const ref = dbRef(db, recordsDir + id);
+	const ref = dbRef(db, recordsDir + '/' + id);
 	onValue(ref, snap => setRecord(snap.val()));
 }
 
@@ -409,7 +409,7 @@ function generateExample(recordsNumber = 1) {
 		updata[id] = record;
 	}
 
-	const ref = dbRef(db, 'records');
+	const ref = dbRef(db, recordsDir);
 	fbUpd(ref, updata);
 
 	return id;
@@ -421,7 +421,7 @@ function generateExample(recordsNumber = 1) {
  * @param {Object} record Данные записи
  */
 function updOneRecord(record) {
-	const ref = dbRef(db, 'records');
+	const ref = dbRef(db, recordsDir);
 	const updata = {};
 	updata[record.id] = record;
 
@@ -434,7 +434,7 @@ function updOneRecord(record) {
  * @param {Object} record Данные записи
  */
 function removeRecord(record) {
-	const ref = dbRef(db, 'records');
+	const ref = dbRef(db, recordsDir);
 	const updata = {};
 	updata[record.id] = null;
 
