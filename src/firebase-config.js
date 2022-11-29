@@ -15,8 +15,5 @@ export const firebaseConfig =
 			databaseURL: 'https://yatd-50f7c-default-rtdb.europe-west1.firebasedatabase.app'
 		});
 
-/** Url хранилища  Firebase  */
-export const storageUrl = 'gs://yatd-50f7c.appspot.com';
-
 /** Объект FirebaseApp  */
 export const fbApp = initializeApp(firebaseConfig);

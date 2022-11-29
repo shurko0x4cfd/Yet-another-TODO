@@ -22,7 +22,7 @@ import {
 	update as fbUpd
 } from "firebase/database";
 
-import { fbApp, storageUrl } from './firebase-config.js'
+import { fbApp, firebaseConfig } from './firebase-config.js'
 import './shared.less';
 import dayjs from 'dayjs';
 
@@ -35,8 +35,8 @@ const recordsDir = 'records/';
 
 /** Объект базы данных Firebase  */
 const db = getDatabase();
-/** Объект базы данных FirebaseStorage  */
-const fbStorage = getStorage(fbApp, storageUrl);
+/** Объект хранилища Firebase Storage  */
+const fbStorage = getStorage(fbApp, firebaseConfig.storageBucket);
 
 
 /** Корневой компонент
@@ -48,7 +48,7 @@ function Yatd(props) {
 	return (
 		<div className="yatd-container col">
 			<RecordList recordIds={recordIds} setRecordIds={setRecordIds} />
-			<BigPlus setRecordIds={setRecordIds} />
+			<BigPlus setRecordIds={setRecordIds} generateExample={generateExample} />
 		</div>);
 }
 
@@ -84,6 +84,7 @@ function Record(props) {
 
 	if (!record) return;
 
+	/** Признак просроченности задачи */
 	const fail = dayjs().isAfter(record.doUpTo) && !record.done;
 
 	return (
@@ -124,41 +125,42 @@ const updField = (setRecord, evt, fieldname) =>
  * Компонент верхнего меню
  * @component
  */
-function TopMenu(props) {
+function TopMenu({ record, setRecord, inEditing, setInEditing, time, setTime }) {
 	return (
-		<div className='top-menu' >
-			<form className='menu-group col' onSubmit={evt => {
-				evt.preventDefault();
-				updOneRecord(props.record);
-			}}>
+		<menu className='top-menu' >
+			<form className='menu-group col'
+				onSubmit={evt => {
+					evt.preventDefault();
+					updOneRecord(record);
+				}}>
 
 				<input className='title fs-1-3 fw-bold'
-					defaultValue={props.record.title} placeholder='Придумайте заголовок'
-					onChange={evt => updField(props.setRecord, evt, 'title')}
+					defaultValue={record.title} placeholder='Придумайте заголовок'
+					onChange={evt => updField(setRecord, evt, 'title')}
 				/>
 			</form>
-			<div className='menu-group row'>
+			<menu className='menu-group row'>
 				{
-					props.inEditing ?
-						<InputTimePlace record={props.record}
-							setRecord={props.setRecord}
-							time={props.time}
-							setTime={props.setTime}
-							setInEditing={props.setInEditing} />
+					inEditing ?
+						<InputTimePlace record={record}
+							setRecord={setRecord}
+							time={time}
+							setTime={setTime}
+							setInEditing={setInEditing} />
 						:
 						<div className='row'
-							onClick={() => props.setInEditing(true)}>
+							onClick={() => setInEditing(true)}>
 
 							<div className='menu-item fc-blue'>Сделать до</div>
-							<div className='menu-item fc-orng'>{props.record.doUpTo}</div>
+							<div className='menu-item fc-orng'>{record.doUpTo}</div>
 						</div>
 				}
 				<div className='menu-item fc-green'
-					onClick={() => markTaskDone(props.record, props.setRecord)}>
-
-					Отметить выполненной</div>
-			</div>
-		</div>);
+					onClick={() => markTaskDone(record, setRecord)}>
+					Отметить выполненной
+				</div>
+			</menu>
+		</menu>);
 }
 
 /**
@@ -177,23 +179,23 @@ function markTaskDone(record, setRecord) {
  * Компонент поля ввода даты/времени завершения задачи
  * @component
  */
-function InputTimePlace(props) {
+function InputTimePlace({ record, setRecord, time, setTime, setInEditing }) {
 	const ref = useRef(null);
 
 	return (
 		<form className='col'
 			onSubmit={evt => {
 				evt.preventDefault();
-				storeTime(ref, props.setInEditing, props.record, props.setRecord);
+				storeTime(ref, setInEditing, record, setRecord);
 			}}>
 
-			<input className='date-at-input' ref={ref} defaultValue={props.time}
+			<input className='date-at-input' ref={ref} defaultValue={time}
 				placeholder={'год-месяц-день часы:мин'}
 				onBlur={() => {
-					storeTime(ref, props.setInEditing, props.record, props.setRecord);
+					storeTime(ref, setInEditing, record, setRecord);
 				}}
 
-				onChange={evt => props.setTime(evt.target.value)}
+				onChange={evt => setTime(evt.target.value)}
 			/>
 		</form>
 	);
@@ -223,36 +225,32 @@ function storeTime(ref, setInEditing, record, setRecord) {
  * Компонент нижнего меню
  * @component
  */
-function BottomMenu(props) {
+function BottomMenu({ filenames = [], record, setRecord }) {
 	return (
-		<div className='bottom-menu'>
-			<div className='row'>
-				<div className='menu-group'>
-					<div className='file-names'>
-						{props.filenames ?
-							props.filenames.map(itm =>
-								<FileNameItem key={itm.id} item={itm}
-									setRecord={props.setRecord} />) : ''}
-					</div>
+		<menu className='bottom-menu'>
+			<menu className='menu-group row'>
+				<div className='file-names'>
+					{filenames.map(itm => <FileNameItem key={itm.id} item={itm}
+						setRecord={setRecord} />)}
 				</div>
-			</div>
-			<div className='row'>
+			</menu>
+			<menu className='row'>
 				<label className='menu-item fc-blue'>
 					<input type="file" id='file' name="file" hidden={true}
-						onChange={uploadFile.bind(null, props.record, props.setRecord)}
+						onChange={uploadFile.bind(null, record, setRecord)}
 						className='upload-file-btn' />
 					+ Прикрепить файл
 				</label>
-				<div className='menu-item fc-red' onClick={() => removeRecord(props.record)}>
+				<div className='menu-item fc-red' role='button'
+					onClick={() => removeRecord(record)}>
 					Удалить запись
 				</div>
-				<div className='menu-item fc-green'
-					onClick={() => updOneRecord(props.record)}>
-
+				<div className='menu-item fc-green' role='button'
+					onClick={() => updOneRecord(record)}>
 					Сохранить
 				</div>
-			</div>
-		</div>
+			</menu>
+		</menu>
 	);
 }
 
@@ -261,21 +259,21 @@ function BottomMenu(props) {
  * Компонент отдельного элемента, представляющего прикреплённый файл
  * @component
  */
-function FileNameItem(props) {
+function FileNameItem({ item, setRecord }) {
 	const [fileUrl, setFileUrl] = useState('');
 
 	useEffect(() => {
 		if (fileUrl !== '') return;
-		getFileUrl(setFileUrl, props.item.id);
+		getFileUrl(setFileUrl, item.id);
 	});
 
 	if (fileUrl === '') return;
 
 	return (
 		<a className='file-names__item'
-			onAuxClick={evt => handleFileOperation(evt, props.setRecord, props.item)}
+			onAuxClick={evt => handleFileOperation(evt, setRecord, item)}
 			href={fileUrl} target={'_blank'} rel={'noreferrer'}>
-			{props.item.originame}
+			{item.originame}
 		</a>
 	);
 }
@@ -317,24 +315,6 @@ function getFileUrl(setFileUrl, id) {
 		.then(url => setFileUrl(url))
 		.catch(e => cl(e));
 }
-
-
-/**
- * Компонент элемента интерфейса, добавляющего новую запись
- * @component
- */
-// function BigPlus(props) {
-// 	return (
-// 		<div className='add-record'>
-// 			<div className='add-record__item'
-// 				onClick={() => {
-// 					const id = generateExample();
-// 					props.setRecordIds(recordIds => [...recordIds, id]);
-// 				}}>
-// 				+
-// 			</div>
-// 		</div>);
-// }
 
 
 /**

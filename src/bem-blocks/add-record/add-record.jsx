@@ -1,6 +1,6 @@
 
 import BigPlusItem from './__item/add-record__item.jsx';
-import { homeBrewUidGen as uidGen } from '../../tools.js';
+import { generateExample } from '../../tools.js';
 import './add-record.less';
 
 
@@ -10,7 +10,7 @@ import './add-record.less';
  */
 const BigPlus = props =>
     <div className='add-record'>
-        <BigPlusItem setRecordIds={props.setRecordIds} uid={uidGen()} />
+        <BigPlusItem setRecordIds={props.setRecordIds} generateExample={props.generateExample} />
     </div>;
 
 

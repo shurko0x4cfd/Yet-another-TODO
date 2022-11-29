@@ -10,7 +10,7 @@ import './_default/add-record__item_default.less';
 const BigPlusItem = props =>
     <div className='add-record__item add-record__item_default'
         onClick={() =>
-            props.setRecordIds(recordIds => [...recordIds, props.uid])}>
+            props.setRecordIds(recordIds => [...recordIds, props.generateExample()])}>
         +
     </div>;
 
