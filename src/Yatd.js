@@ -178,7 +178,7 @@ function TopMenu({ record, setRecord, inEditing, setInEditing, time, setTime }) 
  */
 function markTaskDone(record, setRecord) {
 	setRecord(record => (record['done'] = true, record));
-	updOneRecord(record);
+	setTimeout(() => updOneRecord(record));
 }
 
 
