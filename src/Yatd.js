@@ -48,7 +48,7 @@ function Yatd(props) {
 	return (
 		<div className="yatd-container col">
 			<RecordList recordIds={recordIds.val} />
-			<BigPlus setRecordIds={recordIds.set} {...{generateExample}} />
+			<BigPlus setRecordIds={recordIds.set} {...{ generateExample }} />
 		</div>);
 }
 
@@ -134,7 +134,7 @@ const updField = (setRecord, evt, fieldname) =>
  */
 function TopMenu(props) {
 	const { record, inEditing } = props;
-	const [alStartTimeInput] = useState('al-start-time-input-' + uidGen(8));
+	const alStartTimeInput = 'al-start-time-input-' + uidGen(8);
 
 	return (
 		<menu className='top-menu' >
@@ -154,23 +154,23 @@ function TopMenu(props) {
 					inEditing.val ?
 						<InputTimePlace id={alStartTimeInput} {...props} />
 						:
-						<div className='row' role='button' tabIndex={0}
+						<button className='menu-item flat-button row' tabIndex={0}
 							aria-label={alStartTimeInput}
 							aria-expanded={inEditing.val}
 							onKeyDown={evt => isEnterKindKeyHint(evt.key) &&
 								inEditing.set(true)}
 							onClick={() => inEditing.set(true)}>
 
-							<div className='menu-item fc-blue'>Сделать до</div>
-							<div className='menu-item fc-orng'>{record.val.doUpTo}</div>
-						</div>
+							<span className='fc-blue'>Сделать до </span> '&nbsp;'
+							<span className='fc-orng'>{record.val.doUpTo}</span>
+						</button>
 				}
-				<div className='menu-item fc-green' role='button' tabIndex={0}
+				<button className='menu-item flat-button fc-green' tabIndex={0}
 					onKeyDown={evt => isEnterKindKeyHint(evt.key) &&
 						markTaskDone(record)}
 					onClick={() => markTaskDone(record)}>
 					Отметить выполненной
-				</div>
+				</button>
 			</menu>
 		</menu>);
 }
@@ -204,7 +204,7 @@ function InputTimePlace({ id, record, time, inEditing }) {
 	const ref = useRef(null);
 
 	return (
-		<form {...{id}} className='col'
+		<form {...{ id }} className='col'
 			onSubmit={evt => {
 				evt.preventDefault();
 				storeTime(ref, inEditing, record);
@@ -251,25 +251,25 @@ function BottomMenu({ filenames = [], record }) {
 						<FileNameItem key={item.id} {...{ item, record }} />)}
 				</div>
 			</menu>
-			<menu className='row'>
-				<label tabIndex={0} className='menu-item fc-blue'>
+			<menu className='menu-group row'>
+				<label className='menu-item fc-blue' tabIndex={0} role='button'>
 					<input type='file' id='file' name='file' hidden={true}
 						onChange={evt => uploadFile(evt, record)}
 						className='upload-file-btn' />
 					+ Прикрепить файл
 				</label>
-				<div className='menu-item fc-red' role='button' tabIndex={0}
+				<button className='menu-item flat-button fc-red' tabIndex={0}
 					onKeyDown={evt =>
 						isEnterKindKeyHint(evt.key) && removeRecord(record.val)}
 					onClick={() => removeRecord(record.val)}>
 					Удалить запись
-				</div>
-				<div className='menu-item fc-green' role='button' tabIndex={0}
+				</button>
+				<button className='menu-item flat-button fc-green' tabIndex={0}
 					onKeyDown={evt =>
 						isEnterKindKeyHint(evt.key) && updOneRecord(record.val)}
 					onClick={() => updOneRecord(record.val)}>
 					Сохранить
-				</div>
+				</button>
 			</menu>
 		</menu>
 	);
