@@ -43,13 +43,24 @@ const fbStorage = getStorage(fbApp, firebaseConfig.storageBucket);
  * @component
  */
 function Yatd(props) {
-	const [recordIds, setRecordIds] = useState(props.ids);
+	const recordIds = usePair(props.ids);
 
 	return (
 		<div className="yatd-container col">
-			<RecordList recordIds={recordIds} setRecordIds={setRecordIds} />
-			<BigPlus setRecordIds={setRecordIds} generateExample={generateExample} />
+			<RecordList recordIds={recordIds.val} />
+			<BigPlus setRecordIds={recordIds.set} generateExample={generateExample} />
 		</div>);
+}
+
+
+/**
+ * Кастомный хук. Пакует всё в объект для доступа через точку
+ * @param  {any}    Инициализирующее значение
+ * @return {object} Объект со свойствами val (значение) и set (сеттер)
+ */
+function usePair(init) {
+	const [val, set] = useState(init);
+	return Object.freeze({ val, set });
 }
 
 
@@ -71,41 +82,37 @@ function RecordList(props) {
  * @component
  */
 function Record(props) {
-	const [record, setRecord] = useState(null);
-	const [subscribed, setSubscribed] = useState(false);
-	const [inEditing, setInEditing] = useState(false);
-	const [time, setTime] = useState('');
+	const record = usePair(null);
+	const subscribed = usePair(false);
+	const inEditing = usePair(false);
+	const time = usePair('');
 
 	useEffect(() => {
-		if (subscribed) return;
-		setSubscribed(true);
-		subscribeOnOneRecordChange(setRecord, props.id);
-	});
+		subscribed.set(true);
+		subscribeOnOneRecordChange(record.set, props.id);
+	}, []);
 
-	if (!record) return;
+	if (!record.val) return;
 
+	/** Признак выполненности задачи */
+	const done = record.val.done;
 	/** Признак просроченности задачи */
-	const fail = dayjs().isAfter(record.doUpTo) && !record.done;
+	const fail = dayjs().isAfter(record.val.doUpTo) && !done;
 
 	return (
 		<div className={"record col round-4 " +
-			(record.done ? 'done-green-border ' : ' ') +
+			(done ? 'done-green-border ' : ' ') +
 			(fail ? 'fail-red-border ' : ' ')}>
 
-			<TopMenu record={record}
-				setRecord={setRecord}
-				time={time}
-				setTime={setTime}
-				inEditing={inEditing}
-				setInEditing={setInEditing} />
+			<TopMenu {...{ record, time, inEditing }} />
 
 			<textarea className='description fs-1' rows={1}
 				placeholder='Начните вводить текст здесь'
-				defaultValue={record.desc}
-				onChange={evt => updField(setRecord, evt, 'desc')} />
+				defaultValue={record.val.desc}
+				onChange={evt => updField(record.set, evt, 'desc')} />
 
-			<BottomMenu record={record} setRecord={setRecord}
-				filenames={record.files} />
+			<BottomMenu {...{ record }}
+				filenames={record.val.files} />
 		</div>
 	);
 }
@@ -125,50 +132,56 @@ const updField = (setRecord, evt, fieldname) =>
  * Компонент верхнего меню
  * @component
  */
-function TopMenu({ record, setRecord, inEditing, setInEditing, time, setTime }) {
+function TopMenu(props) {
+	const { record, inEditing } = props;
+
 	return (
 		<menu className='top-menu' >
 			<form className='menu-group col'
 				onSubmit={evt => {
 					evt.preventDefault();
-					updOneRecord(record);
+					updOneRecord(record.val);
 				}}>
 
 				<input className='title fs-1-3 fw-bold'
-					defaultValue={record.title} placeholder='Придумайте заголовок'
-					onChange={evt => updField(setRecord, evt, 'title')}
+					defaultValue={record.val.title} placeholder='Придумайте заголовок'
+					onChange={evt => updField(record.set, evt, 'title')}
 				/>
 			</form>
 			<menu className='menu-group row'>
 				{
-					inEditing ?
-						<InputTimePlace record={record}
-							setRecord={setRecord}
-							time={time}
-							setTime={setTime}
-							setInEditing={setInEditing} />
+					inEditing.val ?
+						<InputTimePlace {...props} />
 						:
 						<div className='row' role='button' tabIndex={0}
-							aria-expanded={inEditing}
-							onKeyDown={evt =>
-								(evt.key === ' ' || evt.key === 'Enter') &&
-								setInEditing(true)}
-							onClick={() => setInEditing(true)}>
+							aria-expanded={inEditing.val}
+							onKeyDown={evt => isEnterKindKeyHint(evt.key) &&
+								inEditing.set(true)}
+							onClick={() => inEditing.set(true)}>
 
 							<div className='menu-item fc-blue'>Сделать до</div>
-							<div className='menu-item fc-orng'>{record.doUpTo}</div>
+							<div className='menu-item fc-orng'>{record.val.doUpTo}</div>
 						</div>
 				}
 				<div className='menu-item fc-green' role='button' tabIndex={0}
-					onKeyDown={evt =>
-						(evt.key === ' ' || evt.key === 'Enter') &&
-						markTaskDone(record, setRecord)}
-					onClick={() => markTaskDone(record, setRecord)}>
+					onKeyDown={evt => isEnterKindKeyHint(evt.key) &&
+						markTaskDone(record)}
+					onClick={() => markTaskDone(record)}>
 					Отметить выполненной
 				</div>
 			</menu>
 		</menu>);
 }
+
+
+/**
+ * Отвечает, расценивать ли нажатие как ввод
+ * @param  {string}  key Нажатая клавиша
+ * @return {boolean} Был ли ввод
+ */
+const isEnterKindKeyHint = key =>
+	key === ' ' || key === 'Enter';
+
 
 /**
  * Обновляет на фронте и на бэке данные записи относительно задачи
@@ -176,9 +189,9 @@ function TopMenu({ record, setRecord, inEditing, setInEditing, time, setTime }) 
  * @param {Object} record    Запись в виде объекта
  * @param {}       setRecord Сеттер данных отдельной записи
  */
-function markTaskDone(record, setRecord) {
-	setRecord(record => (record['done'] = true, record));
-	setTimeout(() => updOneRecord(record));
+function markTaskDone(record) {
+	record.set(record => (record['done'] = true, record));
+	setTimeout(() => updOneRecord(record.val));
 }
 
 
@@ -186,23 +199,20 @@ function markTaskDone(record, setRecord) {
  * Компонент поля ввода даты/времени завершения задачи
  * @component
  */
-function InputTimePlace({ record, setRecord, time, setTime, setInEditing }) {
+function InputTimePlace({ record, time, inEditing }) {
 	const ref = useRef(null);
 
 	return (
 		<form className='col'
 			onSubmit={evt => {
 				evt.preventDefault();
-				storeTime(ref, setInEditing, record, setRecord);
+				storeTime(ref, inEditing, record);
 			}}>
 
-			<input className='date-at-input' ref={ref} defaultValue={time}
+			<input className='date-at-input' ref={ref} defaultValue={time.val}
 				placeholder={'год-месяц-день часы:мин'}
-				onBlur={() => {
-					storeTime(ref, setInEditing, record, setRecord);
-				}}
-
-				onChange={evt => setTime(evt.target.value)}
+				onBlur={() => storeTime(ref, inEditing, record)}
+				onChange={evt => time.set(evt.target.value)}
 			/>
 		</form>
 	);
@@ -217,14 +227,14 @@ function InputTimePlace({ record, setRecord, time, setTime, setInEditing }) {
  * @param {Object} record       Данные записи
  * @param {}       setRecord    Сеттер данных отдельной записи
  */
-function storeTime(ref, setInEditing, record, setRecord) {
-	setInEditing(false);
+function storeTime(ref, inEditing, record) {
+	inEditing.set(false);
 	const dateTime = dayjs(ref.current.value).format('ddd MMM DD YYYY HH:mm');
 
 	dateTime !== 'Invalid Date' &&
-		setRecord(record => (record['doUpTo'] = dateTime, record));
+		record.set(record => (record['doUpTo'] = dateTime, record));
 
-	setTimeout(() => updOneRecord(record));
+	setTimeout(() => updOneRecord(record.val));
 }
 
 
@@ -232,34 +242,32 @@ function storeTime(ref, setInEditing, record, setRecord) {
  * Компонент нижнего меню
  * @component
  */
-function BottomMenu({ filenames = [], record, setRecord }) {
+function BottomMenu({ filenames = [], record }) {
 	return (
 		<menu className='bottom-menu'>
 			<menu className='menu-group row'>
 				<div className='file-names'>
-					{filenames.map(itm => <FileNameItem key={itm.id} item={itm}
-						setRecord={setRecord} />)}
+					{filenames.map(item =>
+						<FileNameItem key={item.id} {...{ item, record }} />)}
 				</div>
 			</menu>
 			<menu className='row'>
 				<label tabIndex={0} className='menu-item fc-blue'>
 					<input type='file' id='file' name='file' hidden={true}
-						onChange={uploadFile.bind(null, record, setRecord)}
+						onChange={evt => uploadFile(evt, record)}
 						className='upload-file-btn' />
 					+ Прикрепить файл
 				</label>
 				<div className='menu-item fc-red' role='button' tabIndex={0}
 					onKeyDown={evt =>
-						(evt.key === ' ' || evt.key === 'Enter') &&
-						removeRecord(record)}
-					onClick={() => removeRecord(record)}>
+						isEnterKindKeyHint(evt.key) && removeRecord(record.val)}
+					onClick={() => removeRecord(record.val)}>
 					Удалить запись
 				</div>
 				<div className='menu-item fc-green' role='button' tabIndex={0}
 					onKeyDown={evt =>
-						(evt.key === ' ' || evt.key === 'Enter') &&
-						updOneRecord(record)}
-					onClick={() => updOneRecord(record)}>
+						isEnterKindKeyHint(evt.key) && updOneRecord(record.val)}
+					onClick={() => updOneRecord(record.val)}>
 					Сохранить
 				</div>
 			</menu>
@@ -272,20 +280,15 @@ function BottomMenu({ filenames = [], record, setRecord }) {
  * Компонент отдельного элемента, представляющего прикреплённый файл
  * @component
  */
-function FileNameItem({ item, setRecord }) {
-	const [fileUrl, setFileUrl] = useState('');
+function FileNameItem({ item, record }) {
+	const fileUrl = usePair('');
 
-	useEffect(() => {
-		if (fileUrl !== '') return;
-		getFileUrl(setFileUrl, item.id);
-	});
+	useEffect(() => { fileUrl.val === '' && getFileUrl(fileUrl.set, item.id) });
 
-	if (fileUrl === '') return;
-
-	return (
+	if (fileUrl.val !== '') return (
 		<a className='file-names__item'
-			onAuxClick={evt => handleFileOperation(evt, setRecord, item)}
-			href={fileUrl} target={'_blank'} rel={'noreferrer'}>
+			onAuxClick={evt => handleFileOperation(evt, record, item)}
+			href={fileUrl.val} target={'_blank'} rel={'noreferrer'}>
 			{item.originame}
 		</a>
 	);
@@ -300,10 +303,10 @@ function FileNameItem({ item, setRecord }) {
  * @param  {Object}  item      Данные элемента прикреплённого файла
  * @return {boolean} Всегда false
  */
-function handleFileOperation(evt, setRecord, item) {
+function handleFileOperation(evt, record, item) {
 	evt.preventDefault();
 
-	setRecord(record => {
+	record.set(record => {
 		record.files.forEach((itm, idx) => {
 			if (itm.id === item.id)
 				delete record.files[idx];
@@ -348,7 +351,7 @@ function subscribeOnOneRecordChange(setRecord, id = '') {
  * @param  {}        evt       Объект события
  * @return {boolean} Всегда false
  */
-function uploadFile(record, setRecord, evt) {
+function uploadFile(evt, record) {
 	evt.stopPropagation();
 	evt.preventDefault();
 
@@ -357,7 +360,7 @@ function uploadFile(record, setRecord, evt) {
 	const newRef = ref(fbStorage, fileId);
 
 	uploadBytes(newRef, file)
-		.then(() => updRecordFileInfo(record, setRecord, file, fileId))
+		.then(() => updRecordFileInfo(record, file, fileId))
 		.catch(arg => Object.keys(arg).lenght && cl(arg));
 
 	return false;
@@ -371,16 +374,16 @@ function uploadFile(record, setRecord, evt) {
  * @param  {Object} file      Объект загруженного файла
  * @param  {string} fileId    Идентификатор файла в Firebase Storage
  */
-function updRecordFileInfo(record, setRecord, file, fileId) {
+function updRecordFileInfo(record, file, fileId) {
 	const fileDescription = { id: fileId, originame: file.name };
 
-	setRecord(record => {
+	record.set(record => {
 		const files = record.files || [];
 		files.push(fileDescription);
 		record.files = files;
 		return record;
 	});
-	setTimeout(() => updOneRecord(record));
+	setTimeout(() => updOneRecord(record.val));
 }
 
 
