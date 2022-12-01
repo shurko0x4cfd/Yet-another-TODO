@@ -48,7 +48,7 @@ function Yatd(props) {
 	return (
 		<div className="yatd-container col">
 			<RecordList recordIds={recordIds.val} />
-			<BigPlus setRecordIds={recordIds.set} generateExample={generateExample} />
+			<BigPlus setRecordIds={recordIds.set} {...{generateExample}} />
 		</div>);
 }
 
@@ -83,12 +83,12 @@ function RecordList(props) {
  */
 function Record(props) {
 	const record = usePair(null);
-	const subscribed = usePair(false);
+	// const subscribed = usePair(false);
 	const inEditing = usePair(false);
 	const time = usePair('');
 
 	useEffect(() => {
-		subscribed.set(true);
+		// subscribed.set(true);
 		subscribeOnOneRecordChange(record.set, props.id);
 	}, []);
 
@@ -120,9 +120,9 @@ function Record(props) {
 
 /**
  * Обновляет на фронте данные записи при изменении элемента типа input или textarea
- * @param {}       setRecord Сеттер данных отдельной записи
- * @param {}       evt       Объект события
- * @param {string} fieldname Имя изменяемого поля в структуре данных записи
+ * @param {React.Dispatch}    setRecord Сеттер данных отдельной записи
+ * @param {React.ChangeEvent} evt       Объект события
+ * @param {string}            fieldname Имя изменяемого поля в структуре данных записи
  */
 const updField = (setRecord, evt, fieldname) =>
 	setRecord(record => (record[fieldname] = evt.target.value, record));
@@ -134,6 +134,7 @@ const updField = (setRecord, evt, fieldname) =>
  */
 function TopMenu(props) {
 	const { record, inEditing } = props;
+	const [alStartTimeInput] = useState('al-start-time-input-' + uidGen(8));
 
 	return (
 		<menu className='top-menu' >
@@ -151,9 +152,10 @@ function TopMenu(props) {
 			<menu className='menu-group row'>
 				{
 					inEditing.val ?
-						<InputTimePlace {...props} />
+						<InputTimePlace id={alStartTimeInput} {...props} />
 						:
 						<div className='row' role='button' tabIndex={0}
+							aria-label={alStartTimeInput}
 							aria-expanded={inEditing.val}
 							onKeyDown={evt => isEnterKindKeyHint(evt.key) &&
 								inEditing.set(true)}
@@ -186,8 +188,7 @@ const isEnterKindKeyHint = key =>
 /**
  * Обновляет на фронте и на бэке данные записи относительно задачи
  * Отмечает задачу как выполненную
- * @param {Object} record    Запись в виде объекта
- * @param {}       setRecord Сеттер данных отдельной записи
+ * @param {object} record Запись в виде объекта
  */
 function markTaskDone(record) {
 	record.set(record => (record['done'] = true, record));
@@ -199,11 +200,11 @@ function markTaskDone(record) {
  * Компонент поля ввода даты/времени завершения задачи
  * @component
  */
-function InputTimePlace({ record, time, inEditing }) {
+function InputTimePlace({ id, record, time, inEditing }) {
 	const ref = useRef(null);
 
 	return (
-		<form className='col'
+		<form {...{id}} className='col'
 			onSubmit={evt => {
 				evt.preventDefault();
 				storeTime(ref, inEditing, record);
@@ -221,11 +222,10 @@ function InputTimePlace({ record, time, inEditing }) {
 
 /**
  * Обновляет на фронте и на бэке дату завершения задачи
- * @param {}       ref          Ссылка на объект типа input
- * @param {}       setInEditing Сбрасывает флаг, сигнализирующий о том, что
- *                                  дата в процессе редактирования
- * @param {Object} record       Данные записи
- * @param {}       setRecord    Сеттер данных отдельной записи
+ * @param {React.MutableRefObject} ref       Ссылка на объект типа input
+ * @param {object}                 inEditing Для сброса флага, сигнализирующего
+ *                                 о том, что дата в процессе редактирования
+ * @param {object}                 record    Данные записи
  */
 function storeTime(ref, inEditing, record) {
 	inEditing.set(false);
@@ -287,7 +287,7 @@ function FileNameItem({ item, record }) {
 
 	if (fileUrl.val !== '') return (
 		<a className='file-names__item'
-			onAuxClick={evt => handleFileOperation(evt, record, item)}
+			onAuxClick={evt => handleFileOperation(evt, record.set, item.id)}
 			href={fileUrl.val} target={'_blank'} rel={'noreferrer'}>
 			{item.originame}
 		</a>
@@ -298,17 +298,17 @@ function FileNameItem({ item, record }) {
 /**
  * Обрабатывает клик средней кнопкой мыши по элементу 
  * прикреплённого файла, для его удаления из записи
- * @param  {}        evt       Объект события
- * @param  {}        setRecord Сеттер данных отдельной записи
- * @param  {Object}  item      Данные элемента прикреплённого файла
+ * @param  {React.MouseEvent} evt       Объект события
+ * @param  {React.Dispatch}   setRecord Сеттер данных отдельной записи
+ * @param  {string}           id        Идентификатор прикреплённого файла
  * @return {boolean} Всегда false
  */
-function handleFileOperation(evt, record, item) {
+function handleFileOperation(evt, setRecord, id) {
 	evt.preventDefault();
 
-	record.set(record => {
+	setRecord(record => {
 		record.files.forEach((itm, idx) => {
-			if (itm.id === item.id)
+			if (itm.id === id)
 				delete record.files[idx];
 		});
 		setTimeout(() => updOneRecord(record));
@@ -322,13 +322,13 @@ function handleFileOperation(evt, record, item) {
 
 /**
  * Обновляет Url файла в теге <a> компонента, педставляющего файл
- * @param {}       setFileUrl Сеттер данных Url
- * @param {string} id         Идентификатор файла в Firebase Storage
+ * @param {React.Dispatch} setFileUrl Сеттер данных Url
+ * @param {string}         id         Идентификатор файла в Firebase Storage
  */
 function getFileUrl(setFileUrl, id) {
 	const newRef = ref(fbStorage, id);
 	getDownloadURL(newRef)
-		.then(url => setFileUrl(url))
+		.then(setFileUrl)
 		.catch(e => cl(e));
 }
 
@@ -346,8 +346,7 @@ function subscribeOnOneRecordChange(setRecord, id = '') {
 
 /**
  * Загружает файл в Firebase Storage
- * @param  {Object}  record    Данные записи
- * @param  {}        setRecord Сеттер данных отдельной записи
+ * @param  {object}  record    Данные записи
  * @param  {}        evt       Объект события
  * @return {boolean} Всегда false
  */
@@ -369,9 +368,8 @@ function uploadFile(evt, record) {
 
 /**
  * Обновляет данные записи в Firebase Realtime Database
- * @param  {Object} record    Данные записи
- * @param  {}       setRecord Сеттер данных отдельной записи
- * @param  {Object} file      Объект загруженного файла
+ * @param  {object} record    Данные записи
+ * @param  {object} file      Объект загруженного файла
  * @param  {string} fileId    Идентификатор файла в Firebase Storage
  */
 function updRecordFileInfo(record, file, fileId) {
@@ -421,7 +419,7 @@ function generateExample(recordsNumber = 1) {
 
 /**
  * Обновляет в Realtime Database указанную запись в соответствии с её состоянием на фронте
- * @param {Object} record Данные записи
+ * @param {object} record Данные записи
  */
 function updOneRecord(record) {
 	const ref = dbRef(db, recordsDir);
@@ -434,7 +432,7 @@ function updOneRecord(record) {
 
 /**
  * Удаляет указанную запись из Realtime Database
- * @param {Object} record Данные записи
+ * @param {object} record Данные записи
  */
 function removeRecord(record) {
 	const ref = dbRef(db, recordsDir);
